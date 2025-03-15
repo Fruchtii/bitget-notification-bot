@@ -1,7 +1,7 @@
 # Bitget Copy Trading Notification Bot
 
 A simple bot that monitors your Bitget copy trades and sends notifications to Telegram when the trader you follow opens or closes positions.
-
+the .yaml is if you want to directly deploy it on render.com with their blueprint feature
 ## Features
 
 - Real-time notifications when your followed trader opens a new position
