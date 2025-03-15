@@ -15,29 +15,47 @@ def home():
 @app.route('/test')
 def test():
     try:
-        # Test Telegram connection with more detailed logging
+        # Initialize status variables
+        bitget_status = "❌ Error"
         telegram_status = "❌ Error"
+        
+        # Test Bitget API connection
         try:
-            print(f"Testing Telegram with token: {TELEGRAM_BOT_TOKEN[:4]}...{TELEGRAM_BOT_TOKEN[-4:]}")
-            print(f"Chat ID: {TELEGRAM_CHAT_ID}")
+            positions = get_current_positions()
+            if 'data' in positions:
+                bitget_status = "✅ Connected"
+        except Exception as e:
+            bitget_status = f"❌ Error: {str(e)[:100]}"
+        
+        # Test Telegram connection
+        try:
             result = send_telegram_message("🧪 *Test Message* 🧪\nThis is a test from your Bitget notification bot.")
-            print(f"Telegram result: {result}")
             if result.get('ok'):
                 telegram_status = "✅ Connected"
             else:
                 telegram_status = f"❌ Error: {result.get('description', 'Unknown error')}"
         except Exception as e:
-            telegram_status = f"❌ Error: {str(e)}"
-            print(f"Telegram test exception: {str(e)}")
-        
-        # Test Telegram connection
-        telegram_status = "❌ Error"
-        try:
-            result = send_telegram_message("🧪 *Test Message* 🧪\nThis is a test from your Bitget notification bot.")
-            if result.get('ok'):
-                telegram_status = "✅ Connected"
-        except Exception as e:
             telegram_status = f"❌ Error: {str(e)[:100]}"
+        
+        # Create response
+        response = f"""
+Bot Test Results:
+
+Bitget API: {bitget_status}
+Telegram: {telegram_status}
+Trader ID: {TRADER_ID or "Not set"}
+
+Environment variables:
+- BITGET_API_KEY: {"✅ Set" if API_KEY else "❌ Missing"}
+- BITGET_SECRET_KEY: {"✅ Set" if SECRET_KEY else "❌ Missing"}
+- BITGET_PASSPHRASE: {"✅ Set" if PASSPHRASE else "❌ Missing"}
+- TELEGRAM_BOT_TOKEN: {"✅ Set" if TELEGRAM_BOT_TOKEN else "❌ Missing"}
+- TELEGRAM_CHAT_ID: {"✅ Set" if TELEGRAM_CHAT_ID else "❌ Missing"}
+- TRADER_ID: {"✅ Set" if TRADER_ID else "❌ Missing"}
+        """
+        return response
+    except Exception as e:
+        return f"Test failed with error: {str(e)}"
         
         # Create response
         response = f"""
