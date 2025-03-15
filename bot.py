@@ -1,29 +1,15 @@
-import http.server
-import socketserver
-from threading import Thread
 import requests
 import time
 import json
 import os
+from flask import Flask
 
-# Simple HTTP server to keep the app alive
-def run_server():
-    class Handler(http.server.SimpleHTTPRequestHandler):
-        def do_GET(self):
-            self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(b'Bot is running')
-    
-    port = int(os.environ.get('PORT', 10000))
-    httpd = socketserver.TCPServer(("", port), Handler)
-    print(f"Serving at port {port}")
-    httpd.serve_forever()
+# Create a Flask app for the web server
+app = Flask(__name__)
 
-# Start the server in a separate thread
-server_thread = Thread(target=run_server)
-server_thread.daemon = True
-server_thread.start()
+@app.route('/')
+def home():
+    return "Bot is running!"
 
 # Bitget API credentials
 API_KEY = os.environ.get('BITGET_API_KEY')
@@ -45,9 +31,8 @@ COPY_TRADES_ENDPOINT = '/api/mix/v1/copy/currentOrders'
 def get_current_positions():
     timestamp = str(int(time.time() * 1000))
     
-    # Create signature (this is a simplified example - you'll need to follow Bitget's signing method)
-    # In a real implementation, you would sign the request according to Bitget's API documentation
-    signature = 'your_signature_generation_method'
+    # Create signature (simplified for now - implement proper signing method)
+    signature = 'your_signature_method'
     
     headers = {
         'ACCESS-KEY': API_KEY,
@@ -57,8 +42,12 @@ def get_current_positions():
         'Content-Type': 'application/json'
     }
     
-    response = requests.get(f"{BASE_URL}{COPY_TRADES_ENDPOINT}", headers=headers)
-    return response.json()
+    try:
+        response = requests.get(f"{BASE_URL}{COPY_TRADES_ENDPOINT}", headers=headers)
+        return response.json()
+    except Exception as e:
+        print(f"Error fetching positions: {str(e)}")
+        return {"data": []}
 
 # Function to send message to Telegram
 def send_telegram_message(message):
@@ -68,10 +57,17 @@ def send_telegram_message(message):
         'text': message,
         'parse_mode': 'Markdown'
     }
-    response = requests.post(url, data=payload)
-    return response.json()
+    
+    try:
+        response = requests.post(url, data=payload)
+        return response.json()
+    except Exception as e:
+        print(f"Error sending Telegram message: {str(e)}")
+        return {}
 
-# Main monitoring function
+# Start monitoring in a background thread
+import threading
+
 def monitor_trades():
     print("Starting trade monitoring...")
     known_positions = {}
@@ -81,17 +77,13 @@ def monitor_trades():
             current_data = get_current_positions()
             
             if 'data' in current_data:
-                # Check for new positions
                 for position in current_data['data']:
                     position_id = position.get('orderId')
                     
-                    # If this is a new position we haven't seen before
                     if position_id and position_id not in known_positions:
                         known_positions[position_id] = position
                         
-                        # Check if it belongs to the trader we're monitoring
                         if position.get('traderId') == TRADER_ID:
-                            # Format and send message
                             symbol = position.get('symbol', 'Unknown')
                             side = position.get('side', 'Unknown')
                             size = position.get('size', 'Unknown')
@@ -115,19 +107,13 @@ def monitor_trades():
             
         except Exception as e:
             print(f"Error during monitoring: {str(e)}")
-            # Wait a bit longer if there was an error
             time.sleep(60)
 
-# Main thread to run monitoring
-import threading
-def run_monitoring():
-    monitor_trades()
+# Start the monitoring in a background thread
+monitor_thread = threading.Thread(target=monitor_trades, daemon=True)
+monitor_thread.start()
 
-# Start monitoring in a separate thread
-monitoring_thread = threading.Thread(target=run_monitoring, daemon=True)
-monitoring_thread.start()
-
-# Run the Flask app for health checks
+# Don't run the Flask app here - let Gunicorn handle it
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 10000))
-    app.run(host='0.0.0.0', port=port)
+    # This is only for local testing
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
