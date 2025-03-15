@@ -101,7 +101,9 @@ def send_telegram_message(message):
     }
     
     try:
+        print(f"Attempting to send Telegram message to chat ID: {TELEGRAM_CHAT_ID}")
         response = requests.post(url, data=payload)
+        print(f"Telegram API response: {response.text[:200]}")
         return response.json()
     except Exception as e:
         print(f"Error sending Telegram message: {str(e)}")
