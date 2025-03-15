@@ -29,7 +29,7 @@ def test():
         
         # Test Telegram connection
         try:
-            result = send_telegram_message("🧪 *Test Message* 🧪\nThis is a test from your Bitget notification bot. !stay sus! -paul")
+            result = send_telegram_message("🧪 *Test Message* 🧪\nThis is a test from your notification bot. !stay sus! -paul")
             if result.get('ok'):
                 telegram_status = "✅ Connected"
             else:
