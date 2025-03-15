@@ -1,15 +1,29 @@
+import http.server
+import socketserver
+from threading import Thread
 import requests
 import time
 import json
 import os
-from flask import Flask
 
-# Set up a simple web server to respond to pings
-app = Flask(__name__)
+# Simple HTTP server to keep the app alive
+def run_server():
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'Bot is running')
+    
+    port = int(os.environ.get('PORT', 10000))
+    httpd = socketserver.TCPServer(("", port), Handler)
+    print(f"Serving at port {port}")
+    httpd.serve_forever()
 
-@app.route('/')
-def home():
-    return "Bot is running!"
+# Start the server in a separate thread
+server_thread = Thread(target=run_server)
+server_thread.daemon = True
+server_thread.start()
 
 # Bitget API credentials
 API_KEY = os.environ.get('BITGET_API_KEY')
