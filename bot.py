@@ -15,14 +15,20 @@ def home():
 @app.route('/test')
 def test():
     try:
-        # Test Bitget API connection
-        bitget_status = "❌ Error"
+        # Test Telegram connection with more detailed logging
+        telegram_status = "❌ Error"
         try:
-            positions = get_current_positions()
-            if 'data' in positions:
-                bitget_status = "✅ Connected"
+            print(f"Testing Telegram with token: {TELEGRAM_BOT_TOKEN[:4]}...{TELEGRAM_BOT_TOKEN[-4:]}")
+            print(f"Chat ID: {TELEGRAM_CHAT_ID}")
+            result = send_telegram_message("🧪 *Test Message* 🧪\nThis is a test from your Bitget notification bot.")
+            print(f"Telegram result: {result}")
+            if result.get('ok'):
+                telegram_status = "✅ Connected"
+            else:
+                telegram_status = f"❌ Error: {result.get('description', 'Unknown error')}"
         except Exception as e:
-            bitget_status = f"❌ Error: {str(e)[:100]}"
+            telegram_status = f"❌ Error: {str(e)}"
+            print(f"Telegram test exception: {str(e)}")
         
         # Test Telegram connection
         telegram_status = "❌ Error"
@@ -101,9 +107,9 @@ def send_telegram_message(message):
     }
     
     try:
-        print(f"Attempting to send Telegram message to chat ID: {TELEGRAM_CHAT_ID}")
-        response = requests.post(url, data=payload)
-        print(f"Telegram API response: {response.text[:200]}")
+        print(f"Attempting to send Telegram message")
+        response = requests.post(url, json=payload)  # Changed from data=payload to json=payload
+        print(f"Telegram API response status: {response.status_code}")
         return response.json()
     except Exception as e:
         print(f"Error sending Telegram message: {str(e)}")
