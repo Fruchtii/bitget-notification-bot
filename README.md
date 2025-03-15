@@ -44,7 +44,6 @@ Copy trading → Trade (read)
 
 Complete security verification if required
 Save your API Key, Secret Key, and Passphrase securely
-
 Step 4: Deploy on Render.com (Free)
 
 Create a GitHub repository with these files:
