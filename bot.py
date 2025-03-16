@@ -97,10 +97,10 @@ TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
 TRADER_ID = os.environ.get('TRADER_ID')
 
 # API endpoints
+# API endpoints
 BASE_URL = 'https://api.bitget.com'
-COPY_TRADES_ENDPOINT = '/api/mix/v1/copy/currentOrders'
-HISTORY_ENDPOINT = '/api/mix/v1/copy/historyOrders'
-
+COPY_TRADES_ENDPOINT = '/api/mix/v1/trace/currentTrack'  # Updated endpoint
+HISTORY_ENDPOINT = '/api/mix/v1/trace/historyTrack'      # Updated endpoint
 # Function to get current positions
 def get_current_positions():
     timestamp = str(int(time.time() * 1000))
