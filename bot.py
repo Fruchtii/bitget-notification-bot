@@ -61,6 +61,29 @@ Environment variables:
     except Exception as e:
         return f"Test failed with error: {str(e)}"
 
+@app.route('/debug')
+def debug_api():
+    try:
+        # Get current positions
+        current_data = get_current_positions()
+        
+        # Get history data
+        history_data = get_history_positions()
+        
+        # Format the response
+        debug_info = {
+            "current_positions": current_data,
+            "history_positions": history_data,
+            "timestamp": time.time(),
+            "trader_id_looking_for": TRADER_ID
+        }
+        
+        # Return as formatted JSON
+        from flask import jsonify
+        return jsonify(debug_info)
+    except Exception as e:
+        return f"Debug failed with error: {str(e)}"
+
 # API credentials
 API_KEY = os.environ.get('BITGET_API_KEY')
 SECRET_KEY = os.environ.get('BITGET_SECRET_KEY')
