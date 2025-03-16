@@ -99,14 +99,14 @@ TRADER_ID = os.environ.get('TRADER_ID')
 # API endpoints
 # API endpoints
 BASE_URL = 'https://api.bitget.com'
-COPY_TRADES_ENDPOINT = '/api/mix/v1/trace/currentTrack'  # Updated endpoint
-HISTORY_ENDPOINT = '/api/mix/v1/trace/historyTrack'      # Updated endpoint
+COPY_TRADES_ENDPOINT = '/api/v2/copy/trade-info/current-orders'  # V2 endpoint
+HISTORY_ENDPOINT = '/api/v2/copy/trade-info/history-orders'      # V2 endpoint
+
 # Function to get current positions
 def get_current_positions():
     timestamp = str(int(time.time() * 1000))
     
-    # Create signature according to Bitget documentation
-    # Timestamp + HTTP_METHOD + requestPath + queryString + Body
+    # V2 signature method
     message = timestamp + 'GET' + COPY_TRADES_ENDPOINT
     signature = base64.b64encode(hmac.new(SECRET_KEY.encode('utf-8'), message.encode('utf-8'), hashlib.sha256).digest()).decode('utf-8')
     
@@ -115,19 +115,18 @@ def get_current_positions():
         'ACCESS-SIGN': signature,
         'ACCESS-TIMESTAMP': timestamp,
         'ACCESS-PASSPHRASE': PASSPHRASE,
-        'Content-Type': 'application/json',
-        'locale': 'en-US'  # Add this header
+        'Content-Type': 'application/json'
     }
     
     try:
-        print(f"Calling API: {BASE_URL}{COPY_TRADES_ENDPOINT}")
+        print(f"Calling V2 API: {BASE_URL}{COPY_TRADES_ENDPOINT}")
         response = requests.get(f"{BASE_URL}{COPY_TRADES_ENDPOINT}", headers=headers)
         print(f"API Response: {response.status_code} {response.text[:200]}")
         return response.json()
     except Exception as e:
         print(f"Error fetching positions: {str(e)}")
         return {"data": []}
-        
+
 # Function to get position history
 def get_history_positions():
     timestamp = str(int(time.time() * 1000))
