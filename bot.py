@@ -105,7 +105,8 @@ HISTORY_ENDPOINT = '/api/mix/v1/trace/historyTrack'      # Updated endpoint
 def get_current_positions():
     timestamp = str(int(time.time() * 1000))
     
-    # Create signature
+    # Create signature according to Bitget documentation
+    # Timestamp + HTTP_METHOD + requestPath + queryString + Body
     message = timestamp + 'GET' + COPY_TRADES_ENDPOINT
     signature = base64.b64encode(hmac.new(SECRET_KEY.encode('utf-8'), message.encode('utf-8'), hashlib.sha256).digest()).decode('utf-8')
     
@@ -114,16 +115,19 @@ def get_current_positions():
         'ACCESS-SIGN': signature,
         'ACCESS-TIMESTAMP': timestamp,
         'ACCESS-PASSPHRASE': PASSPHRASE,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'locale': 'en-US'  # Add this header
     }
     
     try:
+        print(f"Calling API: {BASE_URL}{COPY_TRADES_ENDPOINT}")
         response = requests.get(f"{BASE_URL}{COPY_TRADES_ENDPOINT}", headers=headers)
+        print(f"API Response: {response.status_code} {response.text[:200]}")
         return response.json()
     except Exception as e:
         print(f"Error fetching positions: {str(e)}")
         return {"data": []}
-
+        
 # Function to get position history
 def get_history_positions():
     timestamp = str(int(time.time() * 1000))
